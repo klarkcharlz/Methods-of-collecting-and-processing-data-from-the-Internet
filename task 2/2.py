@@ -6,7 +6,7 @@ import requests
 import json
 
 
-openWeatherMapApiKey = "61ed2e188713dc956850cc34717ed3c8"  # ключ для атворизации
+openWeatherMapApiKey = "61ed22346e18weyh87e23654rw13ytrydc95566850wryhcc34717wertyrewted3c8"  # ключ для атворизации
 city = "Moscow"
 countryCode = "RU"
 
