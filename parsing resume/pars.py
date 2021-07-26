@@ -1,8 +1,24 @@
+"""
+Необходимо собрать информацию о вакансиях на вводимую должность
+(используем input или через аргументы) с сайтов Superjob и HH.
+Приложение должно анализировать несколько страниц сайта (также вводим через input или аргументы).
+Получившийся список должен содержать в себе минимум:
+Наименование вакансии.
+Предлагаемую зарплату (отдельно минимальную и максимальную).
+Ссылку на саму вакансию.
+Сайт, откуда собрана вакансия.
+По желанию можно добавить ещё параметры вакансии (например, работодателя и расположение).
+Структура должна быть одинаковая для вакансий с обоих сайтов.
+Общий результат можно вывести с помощью dataFrame через pandas.
+Можно выполнить по желанию один любой вариант или оба при желании и возможности.
+"""
+
 import requests
 from bs4 import BeautifulSoup
 from loguru import logger
 
 import argparse
+from urllib.parse import urlparse
 
 
 logger.add('log/log.log', format='{time} {level} {message}', level='DEBUG')
@@ -12,21 +28,41 @@ parser.add_argument(
     '--url',
     type=str,
     default=None,
-    help='Link(url) to resume. Default = None.'
+    nargs='+',
+    help='Array of Links(urls) to resume. Default = None.'
 )
 args = parser.parse_args()
 
-if __name__ == "__main__":
-    url = args.url
-    logger.info(f"Принят URL: {url}\nДелаем запрос по заданному url...")
-    headers = {
-        "User-Agent": "curl/7.64.1",
-        "Accept": "*/*"
-    }
-    response = requests.get(url, headers=headers)
-    logger.info(f"Запрос выполнен, статус ответа: {response.status_code}!")
-    soup = BeautifulSoup(response.text, 'html.parser')
-    logger.info("Начинаем парсить...")
+headers = {
+    "User-Agent": "curl/7.64.1",
+    "Accept": "*/*"
+}
 
-    position = soup.findAll("h1", {"data-qa": "vacancy-title"})[0].text
-    logger.info(position)
+if __name__ == "__main__":
+    urls = args.url
+    for url in urls:
+        logger.info(f"Принят URL: {url}\nДелаем запрос по заданному url...")
+        try:
+            response = requests.get(url, headers=headers)
+        except Exception as err:
+            logger.error(f"{type(err)}:\n{err}")
+        else:
+            resume_url = response.url
+            resume_site = urlparse(resume_url).netloc
+            logger.info(f"Запрос выполнен, статус ответа: {response.status_code}!")
+            if 200 <= response.status_code <= 299:
+                soup = BeautifulSoup(response.text, 'html.parser')
+                logger.info("Начинаем парсить...")
+                position = soup.findAll("h1", {"data-qa": "vacancy-title"})[0].text
+                salary = soup.findAll("p", {"class": "vacancy-salary"})[0].text
+                company_name = soup.findAll("a", {"class": "vacancy-company-name"})[0].text
+                place_company = soup.findAll("a", {"data-qa": "vacancy-view-link-location"})[0].text
+                logger.info(resume_site)
+                logger.info(position)
+                logger.info(salary)
+                logger.info(resume_url)
+                logger.info(company_name)
+                logger.info(place_company)
+            else:
+                logger.error(f"Bad url: {resume_url}")
+
