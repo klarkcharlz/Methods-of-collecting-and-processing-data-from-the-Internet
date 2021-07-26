@@ -16,9 +16,12 @@
 import requests
 from bs4 import BeautifulSoup
 from loguru import logger
+from pandas import DataFrame
+from tabulate import tabulate
 
 import argparse
 from urllib.parse import urlparse
+from collections import defaultdict
 
 
 logger.add('log/log.log', format='{time} {level} {message}', level='DEBUG')
@@ -38,6 +41,8 @@ headers = {
     "Accept": "*/*"
 }
 
+resume_data = defaultdict(list)
+
 if __name__ == "__main__":
     urls = args.url
     for url in urls:
@@ -56,13 +61,24 @@ if __name__ == "__main__":
                 position = soup.findAll("h1", {"data-qa": "vacancy-title"})[0].text
                 salary = soup.findAll("p", {"class": "vacancy-salary"})[0].text
                 company_name = soup.findAll("a", {"class": "vacancy-company-name"})[0].text
-                place_company = soup.findAll("a", {"data-qa": "vacancy-view-link-location"})[0].text
+                try:
+                    place_company = soup.findAll("a", {"data-qa": "vacancy-view-link-location"})[0].text
+                except Exception:
+                    place_company = soup.findAll("p", {"data-qa": "vacancy-view-location"})[0].text
                 logger.info(resume_site)
+                resume_data["resume_site"].append(resume_site)
                 logger.info(position)
+                resume_data["position"].append(position)
                 logger.info(salary)
+                resume_data["salary"].append(salary)
                 logger.info(resume_url)
+                resume_data["resume_url"].append(resume_url)
                 logger.info(company_name)
+                resume_data["company_name"].append(company_name)
                 logger.info(place_company)
+                resume_data["place_company"].append(place_company)
             else:
                 logger.error(f"Bad url: {resume_url}")
 
+    frame = DataFrame(resume_data)
+    print(tabulate(frame, headers='keys', tablefmt='psql'))
