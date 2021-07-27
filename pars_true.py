@@ -20,6 +20,7 @@ from tabulate import tabulate  # для красивого вывода дата
 import argparse
 from time import sleep
 from collections import defaultdict
+import csv
 
 
 parser = argparse.ArgumentParser()
@@ -81,8 +82,14 @@ if __name__ == "__main__":
                 resume_data["resume_url"].append(resume_url)
                 resume_data["company_name"].append(company_name)
                 resume_data["place_company"].append(place_company)
-        sleep(0.5)
+        sleep(0.2)
 
     # вывод дата-фрейма в виде красивой таблицы
     frame = DataFrame(resume_data)
     print(tabulate(frame, headers='keys', tablefmt='psql'))
+
+    with open('resume.csv', 'w') as file:
+        writer = csv.DictWriter(file, fieldnames=list(resume_data.keys()))
+        writer.writeheader()
+        for i in range(len(resume_data["position"])):  # возьмем длину любого списка, так как теоретически они все равны
+            writer.writerow({key: resume_data[key][i] for key in resume_data.keys()})
