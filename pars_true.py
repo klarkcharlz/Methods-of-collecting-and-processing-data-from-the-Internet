@@ -22,6 +22,8 @@ from time import sleep
 from collections import defaultdict
 import csv
 
+from func import pars_salary
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -76,6 +78,7 @@ if __name__ == "__main__":
                 salary = vacancy.findAll("div", {"class": "vacancy-serp-item__sidebar"})[0].text
                 company_name = vacancy.findAll("a", {"data-qa": "vacancy-serp__vacancy-employer"})[0].text
                 place_company = vacancy.findAll("span", {"data-qa": "vacancy-serp__vacancy-address"})[0].text
+                min_salary, max_salary, currency = pars_salary(salary)
                 resume_data["resume_site"].append(resume_site)
                 resume_data["position"].append(position)
                 resume_data["salary"].append(salary)
