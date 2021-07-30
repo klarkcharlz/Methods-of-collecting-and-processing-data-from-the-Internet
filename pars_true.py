@@ -87,6 +87,11 @@ if __name__ == "__main__":
                 resume_data["resume_url"].append(resume_url)
                 resume_data["company_name"].append(company_name)
                 resume_data["place_company"].append(place_company)
+            pages_ = list(map(lambda obj: obj.text, soup.findAll("a", {"data-qa": "pager-next"})))
+            # print(pages_)
+            if "дальше" not in pages_:
+                print(f"Всего {page} страниц, задано было: {pages}.")
+                break
         sleep(0.2)
 
     # вывод дата-фрейма в виде красивой таблицы
