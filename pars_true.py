@@ -1,29 +1,23 @@
 """
-Необходимо собрать информацию о вакансиях на вводимую должность
-(используем input или через аргументы) с сайтов Superjob и HH.
-Приложение должно анализировать несколько страниц сайта (также вводим через input или аргументы).
-Получившийся список должен содержать в себе минимум:
-Наименование вакансии.
-Предлагаемую зарплату (отдельно минимальную и максимальную).
-Ссылку на саму вакансию.
-Сайт, откуда собрана вакансия.
-По желанию можно добавить ещё параметры вакансии (например, работодателя и расположение).
-Структура должна быть одинаковая для вакансий с обоих сайтов.
-Общий результат можно вывести с помощью dataFrame через pandas.
-Можно выполнить по желанию один любой вариант или оба при желании и возможности.
+1. Развернуть у себя на компьютере/виртуальной машине/хостинге MongoDB и реализовать функцию,
+записывающую собранные вакансии в созданную БД.
+2. Написать функцию, которая производит поиск и выводит на экран вакансии с заработной платой больше введённой суммы.
+3. Написать функцию, которая будет добавлять в вашу базу данных только новые вакансии с сайта.
 """
 import requests
 from bs4 import BeautifulSoup
 from pandas import DataFrame
 from tabulate import tabulate  # для красивого вывода дата-фрейма
+from pymongo import MongoClient
 
 import argparse
 from time import sleep
 from collections import defaultdict
 import csv
+from pprint import pprint
 
 from func import pars_salary
-
+from mongo_func import mongo_update_without_duplicate
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -50,6 +44,9 @@ resume_site = "www.hh.ru"
 
 resume_data = defaultdict(list)
 
+client = MongoClient('localhost', 27017)
+db = client['VacancyDB']
+vacancy_collection = db['hh']
 
 if __name__ == "__main__":
     position = args.position
@@ -87,19 +84,42 @@ if __name__ == "__main__":
                 resume_data["resume_url"].append(resume_url)
                 resume_data["company_name"].append(company_name)
                 resume_data["place_company"].append(place_company)
+                # запись в монго
+                mongo_dict = {
+                    "resume_site": resume_site,
+                    "position": position,
+                    "min_salary": min_salary,
+                    "max_salary": max_salary,
+                    "currency": currency,
+                    "resume_url": resume_url,
+                    "company_name": company_name,
+                    "place_company": place_company
+                }
+
+                # запись в монго
+                mongo_update_without_duplicate(vacancy_collection, {"position": position, "company_name": company_name},
+                                               {'$set': mongo_dict})
+            # проверяем наличие кнопки дальше
             pages_ = list(map(lambda obj: obj.text, soup.findAll("a", {"data-qa": "pager-next"})))
             # print(pages_)
             if "дальше" not in pages_:
                 print(f"Всего {page} страниц, задано было: {pages}.")
                 break
-        sleep(0.2)
+        sleep(0.1)
 
     # вывод дата-фрейма в виде красивой таблицы
     frame = DataFrame(resume_data)
     print(tabulate(frame, headers='keys', tablefmt='psql'))
 
+    # запись в csv
     with open('resume.csv', 'w') as file:
         writer = csv.DictWriter(file, fieldnames=list(resume_data.keys()))
         writer.writeheader()
         for i in range(len(resume_data["position"])):  # возьмем длину любого списка, так как теоретически они все равны
             writer.writerow({key: resume_data[key][i] for key in resume_data.keys()})
+
+    # check
+    # cursor = resume_collection.find({})
+    # pprint(list(cursor))
+    # cursor = resume_collection.find({})
+    # print(len(list(cursor)))
