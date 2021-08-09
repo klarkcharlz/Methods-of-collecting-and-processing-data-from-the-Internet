@@ -33,22 +33,24 @@ to_auth.click()
 sleep(3)
 
 
-# пролистываем всю почту
-letter = driver.find_elements_by_class_name('js-letter-list-item')
+# пролистываем всю почту и собираем ссылки
+links = set()
+letters = driver.find_elements_by_class_name('js-letter-list-item')
+letter = letters[-1]
 was_letter = None
 while letter != was_letter:
+    for letter in letters:
+        links.add(letter.get_attribute("href"))
     actions = ActionChains(driver)
-    actions.move_to_element(letter[-1])
+    actions.move_to_element(letter)
     actions.perform()
     was_letter = letter
-    letter = driver.find_elements_by_class_name('js-letter-list-item')
-    sleep(2)  # что бы письма успели появиться, иначе выкидывает с ошибкой
+    sleep(4)  # что бы письма успели появиться
+    letters = driver.find_elements_by_class_name('js-letter-list-item')
+    letter = letters[-1]
 
-# собираем ссылки
-letters = driver.find_elements_by_class_name('js-letter-list-item')
-links = []
-for letter in letters:
-    links.append(letter.get_attribute("href"))
+links = list(links)
+
 
 # собираем данные
 letter_data = []
@@ -56,7 +58,7 @@ for link in links:
     driver.get(link)
     # такая большая задержка потому что иногда страница загрузилась, а эллементы всеравно не появились
     # и программа падает
-    sleep(3)
+    sleep(4)
     try:
         date = driver.find_element_by_xpath("//div[@class='letter__date']").text
         from_ = driver.find_element_by_xpath("//span[@class='letter-contact']").get_attribute("title")
@@ -71,5 +73,3 @@ for link in links:
             "date": date,
             "text": text
         })
-
-pprint(letter_data)
