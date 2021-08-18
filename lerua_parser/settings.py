@@ -1,7 +1,7 @@
-BOT_NAME = 'avitoparser'
+BOT_NAME = 'lm_parser'
 
-SPIDER_MODULES = ['avitoparser.spiders']
-NEWSPIDER_MODULE = 'avitoparser.spiders'
+SPIDER_MODULES = ['lerua_parser.spiders']
+NEWSPIDER_MODULE = 'lerua_parser.spiders'
 
 LOG_ENABLED = True
 LOG_LEVEL = 'DEBUG'
@@ -15,13 +15,13 @@ USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36
 
 ROBOTSTXT_OBEY = False
 
-CONCURRENT_REQUESTS = 8
+CONCURRENT_REQUESTS = 16
 
-DOWNLOAD_DELAY = 1.5
+DOWNLOAD_DELAY = 0
 
 COOKIES_ENABLED = True
 
 ITEM_PIPELINES = {
-   'avitoparser.pipelines.AvitoparserPipeline': 300,
-   'avitoparser.pipelines.AvitoPhotosPipeline': 200,
+   'lerua_parser.pipelines.LmParserPipeline': 300,
+   'lerua_parser.pipelines.LmPhotosPipeline': 200,
 }

@@ -1,7 +1,7 @@
 from scrapy import signals
 
 
-class AvitoparserSpiderMiddleware:
+class LmParserSpiderMiddleware:
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -27,7 +27,7 @@ class AvitoparserSpiderMiddleware:
         spider.logger.info('Spider opened: %s' % spider.name)
 
 
-class AvitoparserDownloaderMiddleware:
+class LmParserDownloaderMiddleware:
 
     @classmethod
     def from_crawler(cls, crawler):
